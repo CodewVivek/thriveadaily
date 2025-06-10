@@ -21,10 +21,10 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg">Loading Thrive Daily...</p>
         </div>
       </div>
     );
@@ -36,14 +36,20 @@ function App() {
         return (
           <RegisterPage
             onBack={() => setAuthMode('landing')}
-            onSuccess={() => setAuthMode('landing')}
+            onSuccess={() => {
+              // User will be automatically logged in after successful registration
+              // The useAuth hook will detect the auth state change and update the user
+            }}
           />
         );
       case 'login':
         return (
           <LoginPage
             onBack={() => setAuthMode('landing')}
-            onSuccess={() => setAuthMode('landing')}
+            onSuccess={() => {
+              // User will be automatically logged in after successful login
+              // The useAuth hook will detect the auth state change and update the user
+            }}
             onRegister={() => setAuthMode('register')}
           />
         );
@@ -51,6 +57,7 @@ function App() {
         return (
           <LandingPage
             onGetStarted={() => setAuthMode('register')}
+            onSignIn={() => setAuthMode('login')}
           />
         );
     }

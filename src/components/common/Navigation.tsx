@@ -46,11 +46,11 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, selecte
       <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:border-r lg:border-gray-200 lg:bg-white lg:pt-5 lg:pb-4">
         <div className="flex items-center flex-shrink-0 px-6">
           <div className="flex items-center">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
               <Target className="w-5 h-5 text-white" />
             </div>
-            <h1 className="ml-3 text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-              LifeTracker
+            <h1 className="ml-3 text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              Thrive Daily
             </h1>
           </div>
         </div>
@@ -71,7 +71,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, selecte
                   onClick={() => onTabChange(tab.id)}
                   className={`w-full group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
                     activeTab === tab.id
-                      ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25'
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/25'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
@@ -108,15 +108,15 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, selecte
                 onClick={() => onTabChange(tab.id)}
                 className={`flex flex-col items-center p-2 rounded-lg transition-all duration-200 ${
                   activeTab === tab.id
-                    ? 'text-emerald-600'
+                    ? 'text-indigo-600'
                     : 'text-gray-400 hover:text-gray-600'
                 }`}
               >
                 <IconComponent className={`h-5 w-5 mb-1 ${
-                  activeTab === tab.id ? 'text-emerald-600' : 'text-gray-400'
+                  activeTab === tab.id ? 'text-indigo-600' : 'text-gray-400'
                 }`} />
                 <span className={`text-xs font-medium ${
-                  activeTab === tab.id ? 'text-emerald-600' : 'text-gray-400'
+                  activeTab === tab.id ? 'text-indigo-600' : 'text-gray-400'
                 }`}>
                   {tab.label}
                 </span>
