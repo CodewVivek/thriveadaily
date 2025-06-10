@@ -42,17 +42,21 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSuccess }) => {
         .from('profiles')
         .select('username')
         .eq('username', username)
-        .single();
+        .limit(1);
 
-      if (error && error.code === 'PGRST116') {
-        // No rows returned, username is available
-        setUsernameAvailable(true);
-      } else if (data) {
+      if (error) {
+        console.error('Error checking username:', error);
+        setUsernameAvailable(null);
+      } else if (data && data.length > 0) {
         // Username exists
         setUsernameAvailable(false);
+      } else {
+        // No rows returned, username is available
+        setUsernameAvailable(true);
       }
     } catch (err) {
       console.error('Error checking username:', err);
+      setUsernameAvailable(null);
     } finally {
       setCheckingUsername(false);
     }
