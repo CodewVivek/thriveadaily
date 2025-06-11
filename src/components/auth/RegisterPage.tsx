@@ -151,13 +151,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSuccess }) => {
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <button
-            onClick={onBack}
-            className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-colors duration-200"
-          >
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            Back to Home
-          </button>
+          
           
           <div className="flex justify-center mb-6">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-xl">
@@ -171,6 +165,13 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSuccess }) => {
 
         {/* Registration Form */}
         <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100">
+          <button
+            onClick={onBack}
+            className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-colors duration-200"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            Back to Home
+          </button>
           {/* Google Sign Up */}
           <button
             onClick={handleGoogleSignUp}
