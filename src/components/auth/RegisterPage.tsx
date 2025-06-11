@@ -227,7 +227,42 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSuccess }) => {
             </div>
 
             {/* Username */}
-            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Username
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleInputChange}
+                  className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                  placeholder="Choose a unique username"
+                  required
+                />
+                {usernameStatus && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    {usernameStatus === 'checking' && (
+                      <div className="w-5 h-5 border-2 border-gray-300 border-t-indigo-500 rounded-full animate-spin" />
+                    )}
+                    {usernameStatus === 'available' && (
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                    )}
+                    {usernameStatus === 'taken' && (
+                      <XCircle className="w-5 h-5 text-red-500" />
+                    )}
+                  </div>
+                )}
+              </div>
+              {usernameStatus === 'available' && (
+                <p className="text-sm text-green-600 mt-1">Username is available!</p>
+              )}
+              {usernameStatus === 'taken' && (
+                <p className="text-sm text-red-600 mt-1">Username is already taken</p>
+              )}
+            </div>
 
             {/* Email */}
             <div>
