@@ -96,24 +96,76 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
 
   const isToday = selectedDate === new Date().toISOString().split('T')[0];
 
+  // Get user's first name for personalized greeting
+  const getFirstName = () => {
+    if (profile?.full_name) {
+      return profile.full_name.split(' ')[0];
+    }
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name.split(' ')[0];
+    }
+    if (user?.email) {
+      return user.email.split('@')[0];
+    }
+    return 'there';
+  };
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Welcome back{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}! 👋
-        </h1>
-        <p className="text-gray-600">
-          {isToday 
-            ? "Here's your progress overview for today." 
-            : `Reviewing your progress for ${new Date(selectedDate).toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}`
-          }
-        </p>
+        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-8 text-white mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold mb-2">
+                {isToday ? getGreeting() : 'Welcome back'}, {getFirstName()}! 👋
+              </h1>
+              <p className="text-indigo-100 text-lg">
+                {isToday 
+                  ? "Ready to make today amazing? Here's your progress overview." 
+                  : `Reviewing your progress for ${new Date(selectedDate).toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}`
+                }
+              </p>
+            </div>
+            <div className="hidden md:block">
+              <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center">
+                <span className="text-4xl">🌟</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Quick Stats in Header */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+            <div className="bg-white/10 rounded-xl p-4 text-center">
+              <div className="text-2xl font-bold">{todayStats.calories}</div>
+              <div className="text-sm text-indigo-200">Calories</div>
+            </div>
+            <div className="bg-white/10 rounded-xl p-4 text-center">
+              <div className="text-2xl font-bold">{todayStats.workouts}</div>
+              <div className="text-sm text-indigo-200">Workouts</div>
+            </div>
+            <div className="bg-white/10 rounded-xl p-4 text-center">
+              <div className="text-2xl font-bold">{todayStats.workHours}</div>
+              <div className="text-sm text-indigo-200">Work Hours</div>
+            </div>
+            <div className="bg-white/10 rounded-xl p-4 text-center">
+              <div className="text-2xl font-bold">{todayStats.goals}</div>
+              <div className="text-sm text-indigo-200">Active Goals</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Stats Cards */}

@@ -18,6 +18,9 @@ export const useAuth = () => {
       (event, session) => {
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Log auth events for debugging
+        console.log('Auth event:', event, session?.user?.email);
       }
     );
 

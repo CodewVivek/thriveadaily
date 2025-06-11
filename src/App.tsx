@@ -39,6 +39,8 @@ function App() {
             onSuccess={() => {
               // User will be automatically logged in after successful registration
               // The useAuth hook will detect the auth state change and update the user
+              // Automatically navigate to dashboard
+              setActiveTab('dashboard');
             }}
           />
         );
@@ -49,6 +51,8 @@ function App() {
             onSuccess={() => {
               // User will be automatically logged in after successful login
               // The useAuth hook will detect the auth state change and update the user
+              // Automatically navigate to dashboard
+              setActiveTab('dashboard');
             }}
             onRegister={() => setAuthMode('register')}
           />
