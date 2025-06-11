@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
-import { X, Play, Plus } from 'lucide-react';
+import { X, Play, Plus, Shuffle } from 'lucide-react';
 
 interface WorkSessionFormProps {
   onClose: () => void;
   onStartSession: (task: string, category: string) => void;
+  taskSuggestions: string[];
+  randomTask: string;
 }
 
-const WorkSessionForm: React.FC<WorkSessionFormProps> = ({ onClose, onStartSession }) => {
+const WorkSessionForm: React.FC<WorkSessionFormProps> = ({ 
+  onClose, 
+  onStartSession, 
+  taskSuggestions, 
+  randomTask 
+}) => {
   const [formData, setFormData] = useState({
     task: '',
     category: 'development',
@@ -20,6 +27,7 @@ const WorkSessionForm: React.FC<WorkSessionFormProps> = ({ onClose, onStartSessi
     'planning',
     'testing',
     'documentation',
+    'study',
     'other'
   ];
 
@@ -32,6 +40,10 @@ const WorkSessionForm: React.FC<WorkSessionFormProps> = ({ onClose, onStartSessi
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const useRandomTask = () => {
+    setFormData(prev => ({ ...prev, task: randomTask }));
   };
 
   return (
@@ -48,10 +60,22 @@ const WorkSessionForm: React.FC<WorkSessionFormProps> = ({ onClose, onStartSessi
         </div>
 
         <div className="space-y-4">
+          {/* Task Suggestions */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Task Description
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Task Description
+              </label>
+              <button
+                type="button"
+                onClick={useRandomTask}
+                className="flex items-center text-xs text-purple-600 hover:text-purple-700"
+              >
+                <Shuffle className="w-3 h-3 mr-1" />
+                Random
+              </button>
+            </div>
+            
             <input
               type="text"
               name="task"
@@ -61,6 +85,23 @@ const WorkSessionForm: React.FC<WorkSessionFormProps> = ({ onClose, onStartSessi
               placeholder="e.g., Working on user authentication"
               required
             />
+            
+            {/* Quick Task Suggestions */}
+            <div className="mt-2">
+              <p className="text-xs text-gray-500 mb-2">Quick suggestions:</p>
+              <div className="flex flex-wrap gap-1">
+                {taskSuggestions.slice(0, 6).map((suggestion, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, task: suggestion }))}
+                    className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full hover:bg-purple-100 hover:text-purple-700 transition-colors duration-200"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div>

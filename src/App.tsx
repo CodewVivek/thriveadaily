@@ -12,12 +12,14 @@ import WorkTracker from './components/work/WorkTracker';
 import GoalsTracker from './components/goals/GoalsTracker';
 import Profile from './components/profile/Profile';
 import TimeTravel from './components/common/TimeTravel';
+import MedicalReportAnalyzer from './components/common/MedicalReportAnalyzer';
 
 function App() {
   const { user, loading } = useAuth();
   const [authMode, setAuthMode] = useState<'landing' | 'login' | 'register'>('landing');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [showMedicalAnalyzer, setShowMedicalAnalyzer] = useState(false);
 
   if (loading) {
     return (
@@ -101,6 +103,7 @@ function App() {
         activeTab={activeTab} 
         onTabChange={setActiveTab}
         selectedDate={selectedDate}
+        onShowMedicalAnalyzer={() => setShowMedicalAnalyzer(true)}
       />
       
       {/* Main Content */}
@@ -109,6 +112,18 @@ function App() {
           {renderActiveComponent()}
         </main>
       </div>
+
+      {/* Medical Report Analyzer Modal */}
+      {showMedicalAnalyzer && (
+        <MedicalReportAnalyzer
+          onClose={() => setShowMedicalAnalyzer(false)}
+          onAnalysisComplete={(analysis) => {
+            console.log('Medical analysis completed:', analysis);
+            setShowMedicalAnalyzer(false);
+            // You could update user goals based on the analysis here
+          }}
+        />
+      )}
     </div>
   );
 }

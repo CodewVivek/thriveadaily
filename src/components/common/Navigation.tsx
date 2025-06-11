@@ -1,15 +1,16 @@
 import React from 'react';
-import { Home, Utensils, Dumbbell, Briefcase, User, Target, Calendar, LogOut } from 'lucide-react';
+import { Home, Utensils, Dumbbell, Briefcase, User, Target, Calendar, LogOut, Brain, Plus } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 interface NavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   selectedDate: string;
+  onShowMedicalAnalyzer: () => void;
 }
 
-const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, selectedDate }) => {
-  const { signOut } = useAuth();
+const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, selectedDate, onShowMedicalAnalyzer }) => {
+  const { signOut, user } = useAuth();
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
@@ -40,6 +41,9 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, selecte
     }
   };
 
+  // Check if user is a developer
+  const isDeveloper = user?.user_metadata?.role === 'dev' || user?.email?.includes('@dev.') || false;
+
   return (
     <>
       {/* Desktop Sidebar */}
@@ -59,6 +63,17 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, selecte
         <div className="px-6 mt-4">
           <div className="text-sm text-gray-500">Viewing</div>
           <div className="text-lg font-semibold text-gray-900">{formatDate(selectedDate)}</div>
+        </div>
+
+        {/* AI Medical Analyzer */}
+        <div className="px-3 mt-4">
+          <button
+            onClick={onShowMedicalAnalyzer}
+            className="w-full group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl"
+          >
+            <Brain className="mr-3 h-5 w-5 text-white" />
+            AI Medical Report
+          </button>
         </div>
 
         <div className="mt-8 flex-1 flex flex-col overflow-y-auto">
@@ -83,6 +98,18 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, selecte
               );
             })}
           </nav>
+
+          {/* Developer Badge */}
+          {isDeveloper && (
+            <div className="px-3 mb-4">
+              <div className="bg-yellow-100 border border-yellow-300 rounded-xl p-3">
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2 animate-pulse"></div>
+                  <span className="text-xs font-bold text-yellow-800">DEVELOPER MODE</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Sign Out Button */}
           <div className="px-3 pb-4">

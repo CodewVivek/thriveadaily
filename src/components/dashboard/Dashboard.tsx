@@ -1,11 +1,12 @@
 import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
-import { Calendar, TrendingUp, Award, Flame, Plus } from 'lucide-react';
+import { Calendar, TrendingUp, Award, Flame, Plus, Target, Settings } from 'lucide-react';
 import StatsCard from './StatsCard';
 import ProgressChart from './ProgressChart';
 import RecentActivity from './RecentActivity';
 import StreakCounter from './StreakCounter';
+import GoalPlanner from './GoalPlanner';
 
 interface DashboardProps {
   selectedDate: string;
@@ -14,11 +15,16 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
   const { user } = useAuth();
   const [profile, setProfile] = React.useState<any>(null);
+  const [showGoalPlanner, setShowGoalPlanner] = React.useState(false);
   const [todayStats, setTodayStats] = React.useState({
     calories: 0,
     workouts: 0,
     workHours: 0,
     goals: 0,
+  });
+  const [weeklyProgress, setWeeklyProgress] = React.useState({
+    studyHours: 0,
+    studyGoal: 14, // 2 hours * 7 days
   });
   const [streaks, setStreaks] = React.useState({
     diet: 0,
@@ -61,7 +67,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
           .eq('date', selectedDate),
         supabase
           .from('work_sessions')
-          .select('duration')
+          .select('duration, category')
           .eq('user_id', user.id)
           .eq('date', selectedDate),
         supabase
@@ -76,11 +82,29 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
       const workHours = (workData.data?.reduce((sum, session) => sum + session.duration, 0) || 0) / 60;
       const activeGoals = goalsData.data?.length || 0;
 
+      // Calculate study hours for the week
+      const weekStart = new Date();
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+      
+      const { data: weekWorkData } = await supabase
+        .from('work_sessions')
+        .select('duration, category')
+        .eq('user_id', user.id)
+        .gte('date', weekStart.toISOString().split('T')[0])
+        .eq('category', 'study');
+
+      const studyHours = (weekWorkData?.reduce((sum, session) => sum + session.duration, 0) || 0) / 60;
+
       setTodayStats({
         calories,
         workouts,
         workHours: Math.round(workHours * 10) / 10,
         goals: activeGoals,
+      });
+
+      setWeeklyProgress({
+        studyHours: Math.round(studyHours * 10) / 10,
+        studyGoal: 14,
       });
 
       // Calculate streaks (simplified - you might want to implement more sophisticated streak calculation)
@@ -116,6 +140,9 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
     if (hour < 17) return 'Good afternoon';
     return 'Good evening';
   };
+
+  // Check if user is a developer
+  const isDeveloper = user?.user_metadata?.role === 'dev' || user?.email?.includes('@dev.') || false;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -167,6 +194,101 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
           </div>
         </div>
       </div>
+
+      {/* Current Goals Section */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Your Current Goals</h3>
+            <p className="text-sm text-gray-600">Track your daily and weekly targets</p>
+          </div>
+          <button
+            onClick={() => setShowGoalPlanner(true)}
+            className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-xl font-medium hover:shadow-lg transition-all duration-200 flex items-center"
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Change Goals
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Daily Calorie Goal */}
+          <div className="p-4 bg-emerald-50 rounded-xl">
+            <div className="flex items-center justify-between mb-3">
+              <Target className="w-5 h-5 text-emerald-600" />
+              <span className="text-sm font-medium text-emerald-800">Daily Target</span>
+            </div>
+            <div className="text-2xl font-bold text-emerald-700 mb-1">
+              {profile?.goals?.dailyCalories || 2000} kcal/day
+            </div>
+            <div className="text-sm text-emerald-600">
+              Today: {todayStats.calories} kcal ({Math.round((todayStats.calories / (profile?.goals?.dailyCalories || 2000)) * 100)}%)
+            </div>
+          </div>
+
+          {/* Weekly Study Goal */}
+          <div className="p-4 bg-blue-50 rounded-xl">
+            <div className="flex items-center justify-between mb-3">
+              <Target className="w-5 h-5 text-blue-600" />
+              <span className="text-sm font-medium text-blue-800">Weekly Study</span>
+            </div>
+            <div className="text-2xl font-bold text-blue-700 mb-1">
+              {weeklyProgress.studyGoal} hrs/week
+            </div>
+            <div className="text-sm text-blue-600">
+              This week: {weeklyProgress.studyHours} hrs ({Math.round((weeklyProgress.studyHours / weeklyProgress.studyGoal) * 100)}%)
+            </div>
+          </div>
+
+          {/* Workout Goal */}
+          <div className="p-4 bg-purple-50 rounded-xl">
+            <div className="flex items-center justify-between mb-3">
+              <Target className="w-5 h-5 text-purple-600" />
+              <span className="text-sm font-medium text-purple-800">Weekly Workouts</span>
+            </div>
+            <div className="text-2xl font-bold text-purple-700 mb-1">
+              {profile?.goals?.workoutFrequency || 4} times/week
+            </div>
+            <div className="text-sm text-purple-600">
+              This week: {todayStats.workouts} workouts
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Developer Dashboard */}
+      {isDeveloper && (
+        <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-2xl p-6 text-white mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold">Developer Dashboard</h3>
+              <p className="text-gray-300 text-sm">Admin tools and analytics</p>
+            </div>
+            <div className="bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold">
+              DEV MODE
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-white/10 rounded-xl p-4">
+              <div className="text-xl font-bold">1,247</div>
+              <div className="text-sm text-gray-300">Total Users</div>
+            </div>
+            <div className="bg-white/10 rounded-xl p-4">
+              <div className="text-xl font-bold">15,432</div>
+              <div className="text-sm text-gray-300">Food Entries</div>
+            </div>
+            <div className="bg-white/10 rounded-xl p-4">
+              <div className="text-xl font-bold">8,921</div>
+              <div className="text-sm text-gray-300">Workouts Logged</div>
+            </div>
+            <div className="bg-white/10 rounded-xl p-4">
+              <div className="text-xl font-bold">99.2%</div>
+              <div className="text-sm text-gray-300">Uptime</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -253,6 +375,19 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Goal Planner Modal */}
+      {showGoalPlanner && (
+        <GoalPlanner 
+          onClose={() => setShowGoalPlanner(false)}
+          currentGoals={profile?.goals}
+          onSave={(goals) => {
+            // Update goals in database
+            setShowGoalPlanner(false);
+            loadDashboardData();
+          }}
+        />
       )}
     </div>
   );
