@@ -42,7 +42,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, selecte
   };
 
   // Check if user is a developer
-  const isDeveloper = user?.user_metadata?.role === 'dev' || user?.email?.includes('@dev.') || false;
+  const isDeveloper = user?.user_metadata?.role === 'dev' || user?.email?.includes('vivekmanikonda113@gmail.com') || false;
 
   return (
     <>
