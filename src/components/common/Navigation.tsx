@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Utensils, Dumbbell, Briefcase, User, Target, Calendar, LogOut, Brain, Plus } from 'lucide-react';
+import { Home, Utensils, Dumbbell, Briefcase, User, Target, Calendar, LogOut, Brain, Plus, Lock } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 interface NavigationProps {
@@ -7,9 +7,16 @@ interface NavigationProps {
   onTabChange: (tab: string) => void;
   selectedDate: string;
   onShowMedicalAnalyzer: () => void;
+  onShowAuth?: () => void;
 }
 
-const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, selectedDate, onShowMedicalAnalyzer }) => {
+const Navigation: React.FC<NavigationProps> = ({ 
+  activeTab, 
+  onTabChange, 
+  selectedDate, 
+  onShowMedicalAnalyzer,
+  onShowAuth 
+}) => {
   const { signOut, user } = useAuth();
 
   const tabs = [
@@ -39,6 +46,17 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, selecte
     } else {
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
+  };
+
+  const handleTabClick = (tabId: string) => {
+    if (!user && ['diet', 'workout', 'work', 'goals', 'profile'].includes(tabId)) {
+      // Show auth modal for protected tabs
+      if (onShowAuth) {
+        onShowAuth();
+      }
+      return;
+    }
+    onTabChange(tabId);
   };
 
   // Check if user is a developer
@@ -80,10 +98,12 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, selecte
           <nav className="flex-1 px-3 space-y-1">
             {tabs.map((tab) => {
               const IconComponent = tab.icon;
+              const isProtected = !user && ['diet', 'workout', 'work', 'goals', 'profile'].includes(tab.id);
+              
               return (
                 <button
                   key={tab.id}
-                  onClick={() => onTabChange(tab.id)}
+                  onClick={() => handleTabClick(tab.id)}
                   className={`w-full group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
                     activeTab === tab.id
                       ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/25'
@@ -94,6 +114,9 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, selecte
                     activeTab === tab.id ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'
                   }`} />
                   {tab.label}
+                  {isProtected && (
+                    <Lock className="ml-auto h-4 w-4 text-gray-400" />
+                  )}
                 </button>
               );
             })}
@@ -111,15 +134,25 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, selecte
             </div>
           )}
 
-          {/* Sign Out Button */}
+          {/* Auth/Sign Out Button */}
           <div className="px-3 pb-4">
-            <button
-              onClick={handleSignOut}
-              className="w-full group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 text-red-600 hover:bg-red-50"
-            >
-              <LogOut className="mr-3 h-5 w-5 text-red-500" />
-              Sign Out
-            </button>
+            {user ? (
+              <button
+                onClick={handleSignOut}
+                className="w-full group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 text-red-600 hover:bg-red-50"
+              >
+                <LogOut className="mr-3 h-5 w-5 text-red-500" />
+                Sign Out
+              </button>
+            ) : (
+              <button
+                onClick={onShowAuth}
+                className="w-full group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg hover:shadow-xl"
+              >
+                <User className="mr-3 h-5 w-5 text-white" />
+                Sign In
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -129,11 +162,13 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, selecte
         <div className="flex justify-around">
           {tabs.slice(0, 5).map((tab) => {
             const IconComponent = tab.icon;
+            const isProtected = !user && ['diet', 'workout', 'work', 'goals', 'profile'].includes(tab.id);
+            
             return (
               <button
                 key={tab.id}
-                onClick={() => onTabChange(tab.id)}
-                className={`flex flex-col items-center p-2 rounded-lg transition-all duration-200 ${
+                onClick={() => handleTabClick(tab.id)}
+                className={`flex flex-col items-center p-2 rounded-lg transition-all duration-200 relative ${
                   activeTab === tab.id
                     ? 'text-indigo-600'
                     : 'text-gray-400 hover:text-gray-600'
@@ -147,6 +182,9 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, selecte
                 }`}>
                   {tab.label}
                 </span>
+                {isProtected && (
+                  <Lock className="absolute -top-1 -right-1 h-3 w-3 text-gray-400" />
+                )}
               </button>
             );
           })}

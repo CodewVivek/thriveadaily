@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import LandingPage from './components/auth/LandingPage';
 import RegisterPage from './components/auth/RegisterPage';
 import LoginPage from './components/auth/LoginPage';
+import ForgotPasswordPage from './components/auth/ForgotPasswordPage';
 import Navigation from './components/common/Navigation';
 import Dashboard from './components/dashboard/Dashboard';
 import DietTracker from './components/diet/DietTracker';
@@ -16,10 +16,11 @@ import MedicalReportAnalyzer from './components/common/MedicalReportAnalyzer';
 
 function App() {
   const { user, loading } = useAuth();
-  const [authMode, setAuthMode] = useState<'landing' | 'login' | 'register'>('landing');
+  const [authMode, setAuthMode] = useState<'landing' | 'login' | 'register' | 'forgot'>('landing');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [showMedicalAnalyzer, setShowMedicalAnalyzer] = useState(false);
+  const [skipLanding, setSkipLanding] = useState(false);
 
   if (loading) {
     return (
@@ -32,31 +33,61 @@ function App() {
     );
   }
 
+  // Skip landing page and go directly to dashboard for browsing
+  if (!user && skipLanding) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navigation 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab}
+          selectedDate={selectedDate}
+          onShowMedicalAnalyzer={() => setShowMedicalAnalyzer(true)}
+          onShowAuth={() => setSkipLanding(false)}
+        />
+        
+        <div className="lg:pl-64">
+          <main className="pb-20 lg:pb-8">
+            <Dashboard selectedDate={selectedDate} guestMode={true} />
+          </main>
+        </div>
+
+        {showMedicalAnalyzer && (
+          <MedicalReportAnalyzer
+            onClose={() => setShowMedicalAnalyzer(false)}
+            onAnalysisComplete={(analysis) => {
+              console.log('Medical analysis completed:', analysis);
+              setShowMedicalAnalyzer(false);
+            }}
+            guestMode={true}
+          />
+        )}
+      </div>
+    );
+  }
+
   if (!user) {
     switch (authMode) {
       case 'register':
         return (
           <RegisterPage
             onBack={() => setAuthMode('landing')}
-            onSuccess={() => {
-              // User will be automatically logged in after successful registration
-              // The useAuth hook will detect the auth state change and update the user
-              // Automatically navigate to dashboard
-              setActiveTab('dashboard');
-            }}
+            onSuccess={() => setActiveTab('dashboard')}
           />
         );
       case 'login':
         return (
           <LoginPage
             onBack={() => setAuthMode('landing')}
-            onSuccess={() => {
-              // User will be automatically logged in after successful login
-              // The useAuth hook will detect the auth state change and update the user
-              // Automatically navigate to dashboard
-              setActiveTab('dashboard');
-            }}
+            onSuccess={() => setActiveTab('dashboard')}
             onRegister={() => setAuthMode('register')}
+            onForgotPassword={() => setAuthMode('forgot')}
+          />
+        );
+      case 'forgot':
+        return (
+          <ForgotPasswordPage
+            onBack={() => setAuthMode('login')}
+            onSuccess={() => setAuthMode('login')}
           />
         );
       default:
@@ -64,6 +95,7 @@ function App() {
           <LandingPage
             onGetStarted={() => setAuthMode('register')}
             onSignIn={() => setAuthMode('login')}
+            onSkipToApp={() => setSkipLanding(true)}
           />
         );
     }
@@ -106,21 +138,18 @@ function App() {
         onShowMedicalAnalyzer={() => setShowMedicalAnalyzer(true)}
       />
       
-      {/* Main Content */}
       <div className="lg:pl-64">
         <main className="pb-20 lg:pb-8">
           {renderActiveComponent()}
         </main>
       </div>
 
-      {/* Medical Report Analyzer Modal */}
       {showMedicalAnalyzer && (
         <MedicalReportAnalyzer
           onClose={() => setShowMedicalAnalyzer(false)}
           onAnalysisComplete={(analysis) => {
             console.log('Medical analysis completed:', analysis);
             setShowMedicalAnalyzer(false);
-            // You could update user goals based on the analysis here
           }}
         />
       )}

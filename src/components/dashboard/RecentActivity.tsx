@@ -1,40 +1,62 @@
 import React from 'react';
-import { useApp } from '../../context/AppContext';
 import { Clock, Utensils, Dumbbell, Briefcase } from 'lucide-react';
 
-const RecentActivity: React.FC = () => {
-  const { foodEntries, exercises, workSessions } = useApp();
+interface RecentActivityProps {
+  guestMode?: boolean;
+  selectedDate: string;
+}
 
-  // Combine and sort all activities
-  const allActivities = [
-    ...foodEntries.slice(-5).map(entry => ({
-      id: entry.id,
+const RecentActivity: React.FC<RecentActivityProps> = ({ guestMode = false }) => {
+  // Mock activities for guest mode
+  const mockActivities = [
+    {
+      id: '1',
       type: 'food' as const,
-      title: entry.name,
-      subtitle: `${entry.calories} calories`,
-      time: entry.date,
+      title: 'Grilled Chicken Salad',
+      subtitle: '450 calories',
+      time: '2024-01-07',
       icon: Utensils,
       color: 'emerald',
-    })),
-    ...exercises.slice(-5).map(exercise => ({
-      id: exercise.id,
+    },
+    {
+      id: '2',
       type: 'exercise' as const,
-      title: exercise.name,
-      subtitle: `${exercise.sets} sets × ${exercise.reps} reps`,
-      time: exercise.date,
+      title: 'Morning Run',
+      subtitle: '3 sets × 30 minutes',
+      time: '2024-01-07',
       icon: Dumbbell,
       color: 'blue',
-    })),
-    ...workSessions.slice(-5).map(session => ({
-      id: session.id,
+    },
+    {
+      id: '3',
       type: 'work' as const,
-      title: session.task,
-      subtitle: `${Math.round(session.duration)} minutes`,
-      time: session.date,
+      title: 'Project Planning',
+      subtitle: '120 minutes',
+      time: '2024-01-07',
       icon: Briefcase,
       color: 'purple',
-    })),
-  ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 8);
+    },
+    {
+      id: '4',
+      type: 'food' as const,
+      title: 'Protein Smoothie',
+      subtitle: '280 calories',
+      time: '2024-01-06',
+      icon: Utensils,
+      color: 'emerald',
+    },
+    {
+      id: '5',
+      type: 'exercise' as const,
+      title: 'Weight Training',
+      subtitle: '4 sets × 12 reps',
+      time: '2024-01-06',
+      icon: Dumbbell,
+      color: 'blue',
+    },
+  ];
+
+  const allActivities = guestMode ? mockActivities : [];
 
   const colorClasses = {
     emerald: 'bg-emerald-100 text-emerald-600',

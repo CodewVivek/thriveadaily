@@ -1,12 +1,13 @@
 import React from 'react';
-import { Target, Utensils, Dumbbell, Briefcase, TrendingUp, Users, Award, Calendar, Sparkles, Zap, Heart } from 'lucide-react';
+import { Target, Utensils, Dumbbell, Briefcase, TrendingUp, Users, Award, Calendar, Sparkles, Zap, Heart, ArrowRight } from 'lucide-react';
 
 interface LandingPageProps {
   onGetStarted: () => void;
   onSignIn: () => void;
+  onSkipToApp: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onSkipToApp }) => {
   const features = [
     {
       icon: Utensils,
@@ -30,8 +31,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => 
     },
     {
       icon: Sparkles,
-      title: 'Habit Formation Engine',
-      description: 'Science-backed habit tracking with streak counters, achievement badges, and personalized motivation.',
+      title: 'AI Medical Analysis',
+      description: 'Upload medical reports for instant analysis. Get personalized diet plans, workout recommendations, and health insights.',
     },
     {
       icon: Zap,
@@ -63,7 +64,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => 
     {
       name: 'Emily Watson',
       role: 'Entrepreneur',
-      content: 'The time travel feature saved my tracking streak. I can review and optimize my entire week in minutes.',
+      content: 'The medical report analysis feature helped me understand my health better than any doctor visit.',
       avatar: '🚀'
     }
   ];
@@ -82,12 +83,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => 
             </h1>
           </div>
           
-          <button
-            onClick={onSignIn}
-            className="text-gray-600 hover:text-gray-900 font-medium transition-colors duration-200"
-          >
-            Already have an account? <span className="text-indigo-600">Sign In</span>
-          </button>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={onSkipToApp}
+              className="text-gray-600 hover:text-gray-900 font-medium transition-colors duration-200 flex items-center"
+            >
+              Browse App <ArrowRight className="w-4 h-4 ml-1" />
+            </button>
+            <button
+              onClick={onSignIn}
+              className="text-gray-600 hover:text-gray-900 font-medium transition-colors duration-200"
+            >
+              Already have an account? <span className="text-indigo-600">Sign In</span>
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -112,8 +121,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => 
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-4xl mx-auto leading-relaxed">
-              The ultimate wellness companion that seamlessly tracks your nutrition, fitness, and productivity. 
-              Transform your daily habits into extraordinary results with AI-powered insights.
+              The ultimate wellness companion with AI-powered medical analysis, smart nutrition tracking, 
+              and comprehensive health insights. Transform your daily habits into extraordinary results.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
@@ -124,10 +133,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => 
                 <Zap className="w-5 h-5 mr-2" />
                 Start Your Journey
               </button>
-              <div className="flex items-center text-gray-600">
-                <Users className="w-5 h-5 mr-2" />
-                <span>Join 50,000+ people already thriving</span>
-              </div>
+              <button
+                onClick={onSkipToApp}
+                className="border-2 border-indigo-500 text-indigo-600 px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-indigo-50 transition-all duration-300 flex items-center"
+              >
+                <Calendar className="w-5 h-5 mr-2" />
+                Explore Features
+              </button>
             </div>
 
             {/* Stats */}
@@ -238,10 +250,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => 
               Start Thriving Today
             </button>
             <button
-              onClick={onSignIn}
+              onClick={onSkipToApp}
               className="border-2 border-white text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-white hover:text-indigo-600 transition-all duration-300"
             >
-              Sign In to Continue
+              Try Without Signing Up
             </button>
           </div>
         </div>

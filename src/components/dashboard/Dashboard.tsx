@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
-import { Calendar, TrendingUp, Award, Flame, Plus, Target, Settings } from 'lucide-react';
+import { Calendar, TrendingUp, Award, Flame, Plus, Target, Settings, User, Lock } from 'lucide-react';
 import StatsCard from './StatsCard';
 import ProgressChart from './ProgressChart';
 import RecentActivity from './RecentActivity';
@@ -10,33 +10,34 @@ import GoalPlanner from './GoalPlanner';
 
 interface DashboardProps {
   selectedDate: string;
+  guestMode?: boolean;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
+const Dashboard: React.FC<DashboardProps> = ({ selectedDate, guestMode = false }) => {
   const { user } = useAuth();
   const [profile, setProfile] = React.useState<any>(null);
   const [showGoalPlanner, setShowGoalPlanner] = React.useState(false);
   const [todayStats, setTodayStats] = React.useState({
-    calories: 0,
-    workouts: 0,
-    workHours: 0,
-    goals: 0,
+    calories: guestMode ? 1450 : 0,
+    workouts: guestMode ? 1 : 0,
+    workHours: guestMode ? 6.5 : 0,
+    goals: guestMode ? 3 : 0,
   });
   const [weeklyProgress, setWeeklyProgress] = React.useState({
-    studyHours: 0,
-    studyGoal: 14, // 2 hours * 7 days
+    studyHours: guestMode ? 12.5 : 0,
+    studyGoal: 14,
   });
   const [streaks, setStreaks] = React.useState({
-    diet: 0,
-    workout: 0,
-    work: 0,
+    diet: guestMode ? 7 : 0,
+    workout: guestMode ? 4 : 0,
+    work: guestMode ? 12 : 0,
   });
 
   React.useEffect(() => {
-    if (user) {
+    if (user && !guestMode) {
       loadDashboardData();
     }
-  }, [user, selectedDate]);
+  }, [user, selectedDate, guestMode]);
 
   const loadDashboardData = async () => {
     if (!user) return;
@@ -109,9 +110,9 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
 
       // Calculate streaks (simplified - you might want to implement more sophisticated streak calculation)
       setStreaks({
-        diet: Math.floor(Math.random() * 10) + 1, // Mock data
-        workout: Math.floor(Math.random() * 7) + 1, // Mock data
-        work: Math.floor(Math.random() * 5) + 1, // Mock data
+        diet: Math.floor(Math.random() * 10) + 1,
+        workout: Math.floor(Math.random() * 7) + 1,
+        work: Math.floor(Math.random() * 5) + 1,
       });
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -122,6 +123,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
 
   // Get user's first name for personalized greeting
   const getFirstName = () => {
+    if (guestMode) return 'Guest';
     if (profile?.full_name) {
       return profile.full_name.split(' ')[0];
     }
@@ -144,6 +146,14 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
   // Check if user is a developer
   const isDeveloper = user?.user_metadata?.role === 'dev' || user?.email?.includes('@dev.') || false;
 
+  const mockGoals = {
+    dailyCalories: 2100,
+    workoutFrequency: 4,
+    workHours: 8,
+  };
+
+  const currentGoals = guestMode ? mockGoals : (profile?.goals || mockGoals);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Header */}
@@ -153,22 +163,29 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
             <div>
               <h1 className="text-4xl font-bold mb-2">
                 {isToday ? getGreeting() : 'Welcome back'}, {getFirstName()}! 👋
+                {guestMode && (
+                  <span className="ml-2 text-lg bg-white/20 px-3 py-1 rounded-full text-indigo-100">
+                    Demo Mode
+                  </span>
+                )}
               </h1>
               <p className="text-indigo-100 text-lg">
-                {isToday 
-                  ? "Ready to make today amazing? Here's your progress overview." 
-                  : `Reviewing your progress for ${new Date(selectedDate).toLocaleDateString('en-US', { 
-                      weekday: 'long', 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
-                    })}`
+                {guestMode 
+                  ? "Explore Thrive Daily's features with sample data. Sign in to start tracking your real progress!"
+                  : isToday 
+                    ? "Ready to make today amazing? Here's your progress overview." 
+                    : `Reviewing your progress for ${new Date(selectedDate).toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}`
                 }
               </p>
             </div>
             <div className="hidden md:block">
               <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center">
-                <span className="text-4xl">🌟</span>
+                <span className="text-4xl">{guestMode ? '👀' : '🌟'}</span>
               </div>
             </div>
           </div>
@@ -195,6 +212,24 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
         </div>
       </div>
 
+      {/* Guest Mode Notice */}
+      {guestMode && (
+        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <User className="w-6 h-6 text-blue-600 mr-3" />
+              <div>
+                <h3 className="font-semibold text-blue-900">You're browsing in demo mode</h3>
+                <p className="text-blue-700 text-sm">Sign in to track your real progress and save your data</p>
+              </div>
+            </div>
+            <button className="bg-blue-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-blue-700 transition-colors duration-200">
+              Sign In
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Current Goals Section */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-8">
         <div className="flex items-center justify-between mb-6">
@@ -202,13 +237,20 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
             <h3 className="text-lg font-semibold text-gray-900">Your Current Goals</h3>
             <p className="text-sm text-gray-600">Track your daily and weekly targets</p>
           </div>
-          <button
-            onClick={() => setShowGoalPlanner(true)}
-            className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-xl font-medium hover:shadow-lg transition-all duration-200 flex items-center"
-          >
-            <Settings className="w-4 h-4 mr-2" />
-            Change Goals
-          </button>
+          {!guestMode ? (
+            <button
+              onClick={() => setShowGoalPlanner(true)}
+              className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-xl font-medium hover:shadow-lg transition-all duration-200 flex items-center"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Change Goals
+            </button>
+          ) : (
+            <div className="flex items-center text-gray-500">
+              <Lock className="w-4 h-4 mr-2" />
+              <span className="text-sm">Sign in to edit</span>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -219,10 +261,10 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
               <span className="text-sm font-medium text-emerald-800">Daily Target</span>
             </div>
             <div className="text-2xl font-bold text-emerald-700 mb-1">
-              {profile?.goals?.dailyCalories || 2000} kcal/day
+              {currentGoals.dailyCalories} kcal/day
             </div>
             <div className="text-sm text-emerald-600">
-              Today: {todayStats.calories} kcal ({Math.round((todayStats.calories / (profile?.goals?.dailyCalories || 2000)) * 100)}%)
+              Today: {todayStats.calories} kcal ({Math.round((todayStats.calories / currentGoals.dailyCalories) * 100)}%)
             </div>
           </div>
 
@@ -247,7 +289,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
               <span className="text-sm font-medium text-purple-800">Weekly Workouts</span>
             </div>
             <div className="text-2xl font-bold text-purple-700 mb-1">
-              {profile?.goals?.workoutFrequency || 4} times/week
+              {currentGoals.workoutFrequency} times/week
             </div>
             <div className="text-sm text-purple-600">
               This week: {todayStats.workouts} workouts
@@ -257,7 +299,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
       </div>
 
       {/* Developer Dashboard */}
-      {isDeveloper && (
+      {isDeveloper && !guestMode && (
         <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-2xl p-6 text-white mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -296,7 +338,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
           title={isToday ? "Today's Calories" : "Calories"}
           value={todayStats.calories}
           unit="kcal"
-          target={profile?.goals?.dailyCalories || 2000}
+          target={currentGoals.dailyCalories}
           icon={Calendar}
           color="emerald"
         />
@@ -312,7 +354,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
           title={isToday ? "Work Hours Today" : "Work Hours"}
           value={todayStats.workHours}
           unit="hours"
-          target={profile?.goals?.workHours || 8}
+          target={currentGoals.workHours}
           icon={Calendar}
           color="purple"
         />
@@ -352,12 +394,12 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
 
       {/* Charts and Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <ProgressChart selectedDate={selectedDate} />
-        <RecentActivity selectedDate={selectedDate} />
+        <ProgressChart selectedDate={selectedDate} guestMode={guestMode} />
+        <RecentActivity selectedDate={selectedDate} guestMode={guestMode} />
       </div>
 
       {/* Quick Actions for Today */}
-      {isToday && (
+      {isToday && !guestMode && (
         <div className="mt-8 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 text-white">
           <h3 className="text-xl font-semibold mb-4">Quick Actions</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -378,12 +420,11 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedDate }) => {
       )}
 
       {/* Goal Planner Modal */}
-      {showGoalPlanner && (
+      {showGoalPlanner && !guestMode && (
         <GoalPlanner 
           onClose={() => setShowGoalPlanner(false)}
           currentGoals={profile?.goals}
           onSave={(goals) => {
-            // Update goals in database
             setShowGoalPlanner(false);
             loadDashboardData();
           }}

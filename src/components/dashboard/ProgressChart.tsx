@@ -1,9 +1,22 @@
 import React from 'react';
-import { useApp } from '../../context/AppContext';
 import { TrendingUp } from 'lucide-react';
 
-const ProgressChart: React.FC = () => {
-  const { foodEntries, exercises, workSessions } = useApp();
+interface ProgressChartProps {
+  guestMode?: boolean;
+  selectedDate: string;
+}
+
+const ProgressChart: React.FC<ProgressChartProps> = ({ guestMode = false }) => {
+  // Mock data for guest mode
+  const mockData = [
+    { date: '2024-01-01', calories: 1850, workouts: 1, workHours: 7.5 },
+    { date: '2024-01-02', calories: 2100, workouts: 0, workHours: 8.0 },
+    { date: '2024-01-03', calories: 1950, workouts: 1, workHours: 6.5 },
+    { date: '2024-01-04', calories: 2200, workouts: 1, workHours: 9.0 },
+    { date: '2024-01-05', calories: 1800, workouts: 0, workHours: 7.0 },
+    { date: '2024-01-06', calories: 2050, workouts: 1, workHours: 8.5 },
+    { date: '2024-01-07', calories: 1900, workouts: 1, workHours: 7.5 },
+  ];
 
   // Get last 7 days data
   const last7Days = Array.from({ length: 7 }, (_, i) => {
@@ -12,18 +25,12 @@ const ProgressChart: React.FC = () => {
     return date.toISOString().split('T')[0];
   });
 
-  const chartData = last7Days.map(date => {
-    const dayFoodEntries = foodEntries.filter(entry => entry.date === date);
-    const dayExercises = exercises.filter(exercise => exercise.date === date);
-    const dayWorkSessions = workSessions.filter(session => session.date === date);
-
-    return {
-      date,
-      calories: dayFoodEntries.reduce((sum, entry) => sum + entry.calories, 0),
-      workouts: dayExercises.length,
-      workHours: dayWorkSessions.reduce((sum, session) => sum + session.duration, 0) / 60,
-    };
-  });
+  const chartData = guestMode ? mockData : last7Days.map(date => ({
+    date,
+    calories: 0, // Would be loaded from actual data
+    workouts: 0,
+    workHours: 0,
+  }));
 
   const maxCalories = Math.max(...chartData.map(d => d.calories), 2000);
 
