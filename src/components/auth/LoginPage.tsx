@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Target, Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Target, Mail, Lock, Eye, EyeOff, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 interface LoginPageProps {
@@ -36,6 +36,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack, onSuccess, onRegister, on
       if (error) {
         if (error.message.includes('Email not confirmed')) {
           setError('Please check your email and confirm your account before signing in.');
+        } else if (error.message.includes('Invalid login credentials')) {
+          setError('Invalid email or password. Please check your credentials and try again.');
         } else {
           setError(error.message);
         }
@@ -76,7 +78,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack, onSuccess, onRegister, on
             className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-colors duration-200"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
-            Back to Home
+            Back to Dashboard
           </button>
           
           <div className="flex justify-center mb-6">
@@ -121,7 +123,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack, onSuccess, onRegister, on
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+              <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-center">
+                <AlertCircle className="w-5 h-5 mr-2 flex-shrink-0" />
                 {error}
               </div>
             )}

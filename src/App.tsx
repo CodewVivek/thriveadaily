@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useAuth } from './hooks/useAuth';
-import LandingPage from './components/auth/LandingPage';
 import RegisterPage from './components/auth/RegisterPage';
 import LoginPage from './components/auth/LoginPage';
 import ForgotPasswordPage from './components/auth/ForgotPasswordPage';
@@ -16,11 +15,11 @@ import MedicalReportAnalyzer from './components/common/MedicalReportAnalyzer';
 
 function App() {
   const { user, loading } = useAuth();
-  const [authMode, setAuthMode] = useState<'landing' | 'login' | 'register' | 'forgot'>('landing');
+  const [authMode, setAuthMode] = useState<'login' | 'register' | 'forgot' | null>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [showMedicalAnalyzer, setShowMedicalAnalyzer] = useState(false);
-  const [skipLanding, setSkipLanding] = useState(false);
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -33,84 +32,82 @@ function App() {
     );
   }
 
-  // Skip landing page and go directly to dashboard for browsing
-  if (!user && skipLanding) {
+  // Handle authentication modals
+  if (authMode === 'register') {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Navigation 
-          activeTab={activeTab} 
-          onTabChange={setActiveTab}
-          selectedDate={selectedDate}
-          onShowMedicalAnalyzer={() => setShowMedicalAnalyzer(true)}
-          onShowAuth={() => setSkipLanding(false)}
-        />
-        
-        <div className="lg:pl-64">
-          <main className="pb-20 lg:pb-8">
-            <Dashboard selectedDate={selectedDate} guestMode={true} />
-          </main>
-        </div>
-
-        {showMedicalAnalyzer && (
-          <MedicalReportAnalyzer
-            onClose={() => setShowMedicalAnalyzer(false)}
-            onAnalysisComplete={(analysis) => {
-              console.log('Medical analysis completed:', analysis);
-              setShowMedicalAnalyzer(false);
-            }}
-            guestMode={true}
-          />
-        )}
-      </div>
+      <RegisterPage
+        onBack={() => setAuthMode(null)}
+        onSuccess={() => {
+          setAuthMode(null);
+          if (pendingAction) {
+            setActiveTab(pendingAction);
+            setPendingAction(null);
+          }
+        }}
+        onLogin={() => setAuthMode('login')}
+      />
     );
   }
 
-  if (!user) {
-    switch (authMode) {
-      case 'register':
-        return (
-          <RegisterPage
-            onBack={() => setAuthMode('landing')}
-            onSuccess={() => setActiveTab('dashboard')}
-          />
-        );
-      case 'login':
-        return (
-          <LoginPage
-            onBack={() => setAuthMode('landing')}
-            onSuccess={() => setActiveTab('dashboard')}
-            onRegister={() => setAuthMode('register')}
-            onForgotPassword={() => setAuthMode('forgot')}
-          />
-        );
-      case 'forgot':
-        return (
-          <ForgotPasswordPage
-            onBack={() => setAuthMode('login')}
-            onSuccess={() => setAuthMode('login')}
-          />
-        );
-      default:
-        return (
-          <LandingPage
-            onGetStarted={() => setAuthMode('register')}
-            onSignIn={() => setAuthMode('login')}
-            onSkipToApp={() => setSkipLanding(true)}
-          />
-        );
-    }
+  if (authMode === 'login') {
+    return (
+      <LoginPage
+        onBack={() => setAuthMode(null)}
+        onSuccess={() => {
+          setAuthMode(null);
+          if (pendingAction) {
+            setActiveTab(pendingAction);
+            setPendingAction(null);
+          }
+        }}
+        onRegister={() => setAuthMode('register')}
+        onForgotPassword={() => setAuthMode('forgot')}
+      />
+    );
   }
+
+  if (authMode === 'forgot') {
+    return (
+      <ForgotPasswordPage
+        onBack={() => setAuthMode('login')}
+        onSuccess={() => setAuthMode('login')}
+      />
+    );
+  }
+
+  const handleProtectedAction = (action: string) => {
+    if (!user) {
+      setPendingAction(action);
+      setAuthMode('login');
+      return false;
+    }
+    return true;
+  };
+
+  const handleTabChange = (tab: string) => {
+    // Check if action requires authentication
+    const protectedTabs = ['goals', 'profile'];
+    const protectedActions = ['diet-add', 'workout-add', 'work-add'];
+    
+    if (protectedTabs.includes(tab) || protectedActions.includes(tab)) {
+      if (handleProtectedAction(tab)) {
+        setActiveTab(tab);
+      }
+    } else {
+      setActiveTab(tab);
+    }
+  };
 
   const renderActiveComponent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard selectedDate={selectedDate} />;
+        return <Dashboard selectedDate={selectedDate} guestMode={!user} onProtectedAction={handleProtectedAction} />;
       case 'diet':
-        return <DietTracker selectedDate={selectedDate} />;
+        return <DietTracker selectedDate={selectedDate} guestMode={!user} onProtectedAction={handleProtectedAction} />;
       case 'workout':
-        return <WorkoutTracker selectedDate={selectedDate} />;
+        return <WorkoutTracker selectedDate={selectedDate} guestMode={!user} onProtectedAction={handleProtectedAction} />;
       case 'work':
-        return <WorkTracker selectedDate={selectedDate} />;
+        return <WorkTracker selectedDate={selectedDate} guestMode={!user} onProtectedAction={handleProtectedAction} />;
       case 'goals':
         return <GoalsTracker />;
       case 'profile':
@@ -121,11 +118,12 @@ function App() {
             <TimeTravel
               selectedDate={selectedDate}
               onDateSelect={setSelectedDate}
+              guestMode={!user}
             />
           </div>
         );
       default:
-        return <Dashboard selectedDate={selectedDate} />;
+        return <Dashboard selectedDate={selectedDate} guestMode={!user} onProtectedAction={handleProtectedAction} />;
     }
   };
 
@@ -133,9 +131,11 @@ function App() {
     <div className="min-h-screen bg-gray-50">
       <Navigation 
         activeTab={activeTab} 
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         selectedDate={selectedDate}
         onShowMedicalAnalyzer={() => setShowMedicalAnalyzer(true)}
+        onShowAuth={() => setAuthMode('login')}
+        user={user}
       />
       
       <div className="lg:pl-64">
@@ -151,6 +151,8 @@ function App() {
             console.log('Medical analysis completed:', analysis);
             setShowMedicalAnalyzer(false);
           }}
+          guestMode={!user}
+          onProtectedAction={handleProtectedAction}
         />
       )}
     </div>

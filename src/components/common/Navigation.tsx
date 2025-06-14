@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Utensils, Dumbbell, Briefcase, User, Target, Calendar, LogOut, Brain, Plus, Lock } from 'lucide-react';
+import { Home, Utensils, Dumbbell, Briefcase, User, Target, Calendar, LogOut, Brain, Lock } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 interface NavigationProps {
@@ -8,6 +8,7 @@ interface NavigationProps {
   selectedDate: string;
   onShowMedicalAnalyzer: () => void;
   onShowAuth?: () => void;
+  user: any;
 }
 
 const Navigation: React.FC<NavigationProps> = ({ 
@@ -15,9 +16,10 @@ const Navigation: React.FC<NavigationProps> = ({
   onTabChange, 
   selectedDate, 
   onShowMedicalAnalyzer,
-  onShowAuth 
+  onShowAuth,
+  user
 }) => {
-  const { signOut, user } = useAuth();
+  const { signOut } = useAuth();
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
@@ -49,13 +51,6 @@ const Navigation: React.FC<NavigationProps> = ({
   };
 
   const handleTabClick = (tabId: string) => {
-    if (!user && ['diet', 'workout', 'work', 'goals', 'profile'].includes(tabId)) {
-      // Show auth modal for protected tabs
-      if (onShowAuth) {
-        onShowAuth();
-      }
-      return;
-    }
     onTabChange(tabId);
   };
 
@@ -98,7 +93,7 @@ const Navigation: React.FC<NavigationProps> = ({
           <nav className="flex-1 px-3 space-y-1">
             {tabs.map((tab) => {
               const IconComponent = tab.icon;
-              const isProtected = !user && ['diet', 'workout', 'work', 'goals', 'profile'].includes(tab.id);
+              const isProtected = !user && ['goals', 'profile'].includes(tab.id);
               
               return (
                 <button
@@ -162,7 +157,7 @@ const Navigation: React.FC<NavigationProps> = ({
         <div className="flex justify-around">
           {tabs.slice(0, 5).map((tab) => {
             const IconComponent = tab.icon;
-            const isProtected = !user && ['diet', 'workout', 'work', 'goals', 'profile'].includes(tab.id);
+            const isProtected = !user && ['goals', 'profile'].includes(tab.id);
             
             return (
               <button

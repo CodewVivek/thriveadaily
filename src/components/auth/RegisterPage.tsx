@@ -6,13 +6,13 @@ import { supabase } from '../../lib/supabase';
 interface RegisterPageProps {
   onBack: () => void;
   onSuccess: () => void;
+  onLogin: () => void;
 }
 
-const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSuccess }) => {
+const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSuccess, onLogin }) => {
   const { signUp, signInWithGoogle } = useAuth();
   const [formData, setFormData] = useState({
     fullName: '',
-    username: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -23,56 +23,16 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSuccess }) => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
-  const [checkingUsername, setCheckingUsername] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
-    if (name === 'username' && value.length >= 3) {
-      checkUsernameAvailability(value);
-    } else if (name === 'username') {
-      setUsernameAvailable(null);
-    }
-  };
-
-  const checkUsernameAvailability = async (username: string) => {
-    setCheckingUsername(true);
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('username', username)
-        .limit(1);
-
-      if (error) {
-        console.error('Error checking username:', error);
-        setUsernameAvailable(null);
-      } else if (data && data.length > 0) {
-        setUsernameAvailable(false);
-      } else {
-        setUsernameAvailable(true);
-      }
-    } catch (err) {
-      console.error('Error checking username:', err);
-      setUsernameAvailable(null);
-    } finally {
-      setCheckingUsername(false);
-    }
   };
 
   const validateForm = () => {
     if (!formData.fullName.trim()) {
       setError('Full name is required');
-      return false;
-    }
-    if (!formData.username.trim() || formData.username.length < 3) {
-      setError('Username must be at least 3 characters');
-      return false;
-    }
-    if (usernameAvailable === false) {
-      setError('Username is already taken');
       return false;
     }
     if (!formData.email.trim() || !formData.email.includes('@')) {
@@ -102,15 +62,14 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSuccess }) => {
       const { data, error } = await signUp(
         formData.email,
         formData.password,
-        formData.username,
         formData.fullName
       );
 
       if (error) {
         setError(error.message);
       } else if (data.user) {
-        setSuccess('Registration successful! Please check your email to confirm your account before signing in.');
-        // Don't automatically redirect - wait for email confirmation
+        setSuccess('Registration successful! A confirmation email has been sent to your email address. Please check your inbox and confirm your account before signing in.');
+        setEmailSent(true);
       }
     } catch (err) {
       setError('An unexpected error occurred');
@@ -136,15 +95,58 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSuccess }) => {
     }
   };
 
-  const getUsernameStatus = () => {
-    if (formData.username.length < 3) return null;
-    if (checkingUsername) return 'checking';
-    if (usernameAvailable === true) return 'available';
-    if (usernameAvailable === false) return 'taken';
-    return null;
-  };
+  if (emailSent) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-xl">
+                <CheckCircle className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Check Your Email</h1>
+            <p className="text-gray-600">We've sent a confirmation email to your inbox</p>
+          </div>
 
-  const usernameStatus = getUsernameStatus();
+          <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Confirmation Email Sent!</h3>
+              <p className="text-gray-600 mb-6">
+                A confirmation email has been sent to <strong>{formData.email}</strong>. 
+                Please check your inbox and click the confirmation link to activate your account.
+              </p>
+              
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl mb-6">
+                <div className="flex items-center">
+                  <AlertCircle className="w-5 h-5 text-blue-500 mr-2" />
+                  <span className="text-sm text-blue-800">
+                    You must confirm your email before you can sign in
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={onLogin}
+                  className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  Go to Sign In
+                </button>
+                <button
+                  onClick={onBack}
+                  className="w-full border border-gray-200 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-50 transition-colors duration-200"
+                >
+                  Back to Dashboard
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
@@ -156,7 +158,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSuccess }) => {
             className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-colors duration-200"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
-            Back to Home
+            Back to Dashboard
           </button>
           
           <div className="flex justify-center mb-6">
@@ -233,44 +235,6 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSuccess }) => {
               </div>
             </div>
 
-            {/* Username */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Username
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                  className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
-                  placeholder="Choose a unique username"
-                  required
-                />
-                {usernameStatus && (
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                    {usernameStatus === 'checking' && (
-                      <div className="w-5 h-5 border-2 border-gray-300 border-t-indigo-500 rounded-full animate-spin" />
-                    )}
-                    {usernameStatus === 'available' && (
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                    )}
-                    {usernameStatus === 'taken' && (
-                      <XCircle className="w-5 h-5 text-red-500" />
-                    )}
-                  </div>
-                )}
-              </div>
-              {usernameStatus === 'available' && (
-                <p className="text-sm text-green-600 mt-1">Username is available!</p>
-              )}
-              {usernameStatus === 'taken' && (
-                <p className="text-sm text-red-600 mt-1">Username is already taken</p>
-              )}
-            </div>
-
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -345,7 +309,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSuccess }) => {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading || usernameAvailable === false || success !== ''}
+              disabled={loading || success !== ''}
               className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
@@ -358,10 +322,18 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSuccess }) => {
               )}
             </button>
 
-            {/* Email Confirmation Notice */}
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-blue-700 text-sm">
-              <AlertCircle className="w-4 h-4 inline mr-2" />
-              You'll need to confirm your email address before you can sign in.
+            {/* Login Link */}
+            <div className="text-center">
+              <p className="text-gray-600">
+                Already have an account?{' '}
+                <button
+                  type="button"
+                  onClick={onLogin}
+                  className="text-indigo-600 hover:text-indigo-700 font-medium transition-colors duration-200"
+                >
+                  Sign in here
+                </button>
+              </p>
             </div>
           </form>
         </div>
